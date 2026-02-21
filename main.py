@@ -14,31 +14,28 @@ bot = commands.Bot(command_prefix='@', intents=intents)
 server_cache = {}
 
 @bot.event
-async def on_ready():
+async def __on_ready__():
     print(f'Logged in as {bot.user}')
 
 @bot.command()
 async def someone(ctx, *, user_input: str = ""):
     server_id = ctx.guild.id
 
-    # Build cache if it doesn't exist
-    if server_id not in server_cache:
+    # 1. Build the list of humans only
+    if server_id not in server_cache or not server_cache[server_id]:
         server_cache[server_id] = [m.mention for m in ctx.guild.members if not m.bot]
 
+    # 2. Pick EXACTLY one person
     if server_cache[server_id]:
         rando = random.choice(server_cache[server_id])
         
-        # This is the fix: It ONLY sends the mention and your text. 
-        # No more "I choose you"!
-        if user_input:
-            await ctx.send(f"{rando} {user_input}")
-        else:
-            # If you type JUST @someone, it will still just ping them.
-            await ctx.send(f"{rando}")
+        # 3. Clean the user_input to make sure no extra pings snuck in
+        # We only send the one 'rando' we picked
+        await ctx.send(f"{rando} {user_input}")
     else:
-        await ctx.send("The guest list is empty!")
+        await ctx.send("I can't find anyone to ping!")
 
-# Keeping the cache updated
+# Keep the list updated
 @bot.event
 async def on_member_join(member):
     if member.guild.id in server_cache and not member.bot:
