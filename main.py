@@ -18,7 +18,7 @@ async def on_ready():
     print(f'Logged in as {bot.user}')
 
 @bot.command()
-async def someone(ctx, *, message: str = ""):
+async def someone(ctx, *, user_input: str = ""):
     server_id = ctx.guild.id
 
     # Build cache if it doesn't exist
@@ -28,16 +28,17 @@ async def someone(ctx, *, message: str = ""):
     if server_cache[server_id]:
         rando = random.choice(server_cache[server_id])
         
-        # If the user added text (like "farted"), it adds it after the mention
-        if message:
-            await ctx.send(f"{rando} {message}")
+        # This is the fix: It ONLY sends the mention and your text. 
+        # No more "I choose you"!
+        if user_input:
+            await ctx.send(f"{rando} {user_input}")
         else:
-            # Default response if you just type @someone with no text
-            await ctx.send(f"I choose you: {rando}")
+            # If you type JUST @someone, it will still just ping them.
+            await ctx.send(f"{rando}")
     else:
-        await ctx.send("I couldn't find anyone in the guest list!")
+        await ctx.send("The guest list is empty!")
 
-# Cache update events (Keep these the same as before)
+# Keeping the cache updated
 @bot.event
 async def on_member_join(member):
     if member.guild.id in server_cache and not member.bot:
